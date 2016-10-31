@@ -4,25 +4,109 @@
 
 <script id="color-shader-vs" type="x-shader/x-vertex">
 	// vertex shader code
+	attribute vec4 vertexPosition;
+	attribute vec4 vertexColor;
+	
+	varying vec4 color;
+
+	void main(void) {
+		color = vertexColor;
+		gl_Position = vertexPosition;
+	}
 </script>
 
 <script id="color-shader-fs" type="x-shader/x-fragment">
 	// frag shader code
+	
+	attribute vec4 color;
+	varying vec4 fColor;
+
+	void main(void) {
+		fColor = color;
+	}
 </script>
 
 <script type="text/javascript">
-	// our program code
+	// program globals
+	var canvas, gl, shaderProgram;
+	var triangle = {
+		vbo: null,
+		vertices: [
+			{x: 0.0, y: 1.0, z: 0.0},
+			{x: -1.0, y: 0.0, z: 0.0},
+			{x: 1.0, y: 0.0, z: 0.0}
+		],
+		colors: [
+			{r: 1.0, g: 0.0, b: 0.0, a: 1.0},
+			{r: 0.0, g: 1.0, b: 0.0, a: 1.0},
+			{r: 0.0, g: 0.0, b: 1.0, a: 1.0}
+		]
+	}
+
+	function initBuffers() {
+		triangle.vbo = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, triangle.vbo);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangle.vertices), gl.STATIC_DRAW);
+	}
+
+	function drawScene() {
+
+	}
 
 	// entry function
 	function webGlStart() {
+		alert('START!');
 
+		// init gl
+		canvas = document.getElementById('webgl-demo');
+		gl = canvas.getContext('webgl');
+		gl.viewportWidth = canvas.width;
+		gl.viewportHeight = canvas.height;
+		
+		// load the shaders, and init them
+		var vertexShader = loadShader(gl, 'color-shader-vs'),
+				fragmentShader = loadShader(gl, 'color-shader-fs');
+
+		shaderProgram = gl.createProgram();
+		gl.attachShader(shaderProgram, vertexShader);
+		gl.attachShader(shaderProgram, fragmentShader);
+		gl.linkProgram(shaderProgram);
+
+		if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+		  alert("Couldn't initialize the shaders");
+		}
+
+		gl.useProgram(shaderProgram);
+	}
+
+	function loadShader(gl, id) {
+		var shaderScriptText = document.getElementById(id).innerHTML;
+
+		var shader;
+    if (shaderScriptText.type == "x-shader/x-fragment") {
+      shader = gl.createShader(gl.FRAGMENT_SHADER);
+    } else if (shaderScriptText.type == "x-shader/x-vertex") {
+      shader = gl.createShader(gl.VERTEX_SHADER);
+    } else {
+      return null;
+    }
+
+    gl.shaderSource(shader, str);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      alert(gl.getShaderInfoLog(shader));
+      return null;
+    }
+
+    return shader;
 	}
 </script>
 
 </head>
-<body>
+<body onload="webGlStart();">
 	<h1> Welcome! </h1>
 	<h3> Written By: Cody Balos, Lucas Jovalis, Stephen Carpenter, Deana Ceja, Nathan Wong </h3>
-	<canvas id="demo-main" style="border: none;" width="500" height "500"></canvas>
+	<canvas id="webgl-demo" style="border: none;" width="500" height="500"></canvas>
 </body>
 </html>
