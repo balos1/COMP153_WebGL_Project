@@ -7,22 +7,20 @@
 	attribute vec4 vertexPosition;
 	attribute vec4 vertexColor;
 	
-	varying vec4 color;
+	varying highp vec4 color;
 
 	void main(void) {
-		color = vertexColor;
+		color = vec4(1.0, 0.0, 0.0, 1.0); //vertexColor;
 		gl_Position = vertexPosition;
 	}
 </script>
 
 <script id="color-shader-fs" type="x-shader/x-fragment">
 	// frag shader code
-	
-	attribute vec4 color;
-	varying vec4 fColor;
+	varying highp vec4 color;
 
 	void main(void) {
-		fColor = color;
+		gl_FragColor = color;
 	}
 </script>
 
@@ -30,11 +28,12 @@
 	// program globals
 	var canvas, gl, shaderProgram;
 	var triangle = {
-		vbo: null,
+		vertexPositionAttrib: null,
+		vertexColorAttrib: null,
 		vertices: [
-			{x: 0.0, y: 1.0, z: 0.0},
+			{x: 0.0,  y: 1.0, z: 0.0},
 			{x: -1.0, y: 0.0, z: 0.0},
-			{x: 1.0, y: 0.0, z: 0.0}
+			{x: 1.0,  y: 0.0, z: 0.0}
 		],
 		colors: [
 			{r: 1.0, g: 0.0, b: 0.0, a: 1.0},
@@ -43,20 +42,29 @@
 		]
 	}
 
-	function initBuffers() {
-		triangle.vbo = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, triangle.vbo);
+	function initTriangle() {
+		triangle.vertexPositionBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangle.vertices), gl.STATIC_DRAW);
+		triangle.vertexPositionBuffer.numItems = triangle.vertices.length;
+		triangle.vertexPositionBuffer.itemSize = 3;
+		enableAttributes();
 	}
 
 	function drawScene() {
-
+		gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.bindBuffer(gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
+		gl.vertexAttribPointer(triangle.vertexPositionAttrib, triangle.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		//gl.vertexAttribPointer(triangle.vertexColorAttrib, triangle.)
+		gl.drawArrays(gl.TRIANGLES, 0, triangle.vertexPositionBuffer.numItems);
 	}
 
-	// entry function
-	function webGlStart() {
-		alert('START!');
 
+	/**
+	 * Entry function for the demo.
+	 */
+	function webGlStart() {
 		// init gl
 		canvas = document.getElementById('webgl-demo');
 		gl = canvas.getContext('webgl');
@@ -77,25 +85,44 @@
 		}
 
 		gl.useProgram(shaderProgram);
+
+		initTriangle();
+
+		setInterval(drawScene, 100);
 	}
 
+	function enableAttributes() {
+		triangle.vertexPositionAttrib = gl.getAttribLocation(shaderProgram, 'vertexPosition');
+		gl.enableVertexAttribArray(triangle.vertexPositionAttrib);
+		//triangle.vertexColorAttrib = gl.getAttribLocation(shaderProgram, 'vertexColor');
+		//gl.enableVertexAttribArray(triangle.vertexColorAttrib);
+	}
+
+	/**
+	 * Loads a shader from the script element identified by the element id.
+	 * @param  {[type]} gl [description]
+	 * @param  {[type]} id [description]
+	 * @return {[type]}    [description]
+	 */
 	function loadShader(gl, id) {
-		var shaderScriptText = document.getElementById(id).innerHTML;
+		var shaderEl = document.getElementById(id),
+				shaderSource = shaderEl.innerHTML;
 
 		var shader;
-    if (shaderScriptText.type == "x-shader/x-fragment") {
-      shader = gl.createShader(gl.FRAGMENT_SHADER);
-    } else if (shaderScriptText.type == "x-shader/x-vertex") {
-      shader = gl.createShader(gl.VERTEX_SHADER);
-    } else {
-      return null;
-    }
+		if (shaderEl.type == "x-shader/x-fragment") {
+	  	shader = gl.createShader(gl.FRAGMENT_SHADER);
+		} else if (shaderEl.type == "x-shader/x-vertex") {
+			shader = gl.createShader(gl.VERTEX_SHADER);
+		} else {
+			return null;
+		}
 
-    gl.shaderSource(shader, str);
+    gl.shaderSource(shader, shaderSource);
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      alert(gl.getShaderInfoLog(shader));
+    	alert("Error loading shaders. See console log.")
+      console.log(gl.getShaderInfoLog(shader));
       return null;
     }
 
