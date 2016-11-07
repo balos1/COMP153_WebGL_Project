@@ -2,138 +2,158 @@
 <head>
 <title> COMP153 WebGL Demo </title>
 
-<script id="color-shader-vs" type="x-shader/x-vertex">
-	// vertex shader code
-	attribute vec4 vertexPosition;
-	attribute vec4 vertexColor;
-	
-	varying highp vec4 color;
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
-	void main(void) {
-		color = vec4(1.0, 0.0, 0.0, 1.0); //vertexColor;
-		gl_Position = vertexPosition;
-	}
+<script id="color-shader-vs" type="x-shader/x-vertex">
+  // vertex shader code
+  attribute vec4 vertexPosition;
+  attribute vec4 vertexColor;
+  
+  varying highp vec4 color;
+
+  void main(void) {
+    color = vec4(1.0, 0.0, 0.0, 1.0); //vertexColor;
+    gl_Position = vertexPosition;
+  }
 </script>
 
 <script id="color-shader-fs" type="x-shader/x-fragment">
-	// frag shader code
-	varying highp vec4 color;
+  // frag shader code
+  varying highp vec4 color;
 
-	void main(void) {
-		gl_FragColor = color;
-	}
+  void main(void) {
+    gl_FragColor = color;
+  }
+</script>
+
+<!-- Triangle class -->
+<script type="text/javascript">
+  function Triangle() {
+    this.vertexPositionAttrib = null;
+    this.vertexColorAttrib    = null;
+    
+    this.vertices = [
+      {x: 0.0,  y: 1.0, z: 0.0},
+      {x: -1.0, y: 0.0, z: 0.0},
+      {x: 1.0,  y: 0.0, z: 0.0}
+    ];
+    
+    this.colors = [
+      {r: 1.0, g: 0.0, b: 0.0, a: 1.0},
+      {r: 0.0, g: 1.0, b: 0.0, a: 1.0},
+      {r: 0.0, g: 0.0, b: 1.0, a: 1.0}
+    ]
+  }
+
+  Triangle.prototype.init = function() {
+    // create the vertex position buffer
+    triangle.vertexPositionBuffer = APP.gl.createBuffer();
+    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
+    APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(triangle.vertices), APP.gl.STATIC_DRAW);
+    triangle.vertexPositionBuffer.numItems = triangle.vertices.length;
+    triangle.vertexPositionBuffer.itemSize = 3;
+
+    // enable the vertex attributes
+    triangle.vertexPositionAttrib = APP.gl.getAttribLocation(APP.shaderProgram, 'vertexPosition');
+    APP.gl.enableVertexAttribArray(triangle.vertexPositionAttrib);
+    //triangle.vertexColorAttrib = APP.gl.getAttribLocation(APP.shaderProgram, 'vertexColor');
+    //APP.gl.enableVertexAttribArray(triangle.vertexColorAttrib);
+  }
 </script>
 
 <script type="text/javascript">
-	// program globals
-	var canvas, gl, shaderProgram;
-	var triangle = {
-		vertexPositionAttrib: null,
-		vertexColorAttrib: null,
-		vertices: [
-			{x: 0.0,  y: 1.0, z: 0.0},
-			{x: -1.0, y: 0.0, z: 0.0},
-			{x: 1.0,  y: 0.0, z: 0.0}
-		],
-		colors: [
-			{r: 1.0, g: 0.0, b: 0.0, a: 1.0},
-			{r: 0.0, g: 1.0, b: 0.0, a: 1.0},
-			{r: 0.0, g: 0.0, b: 1.0, a: 1.0}
-		]
-	}
+  // Use immediately invoked function for scoping
+  (function() { 
+    // program global
+    APP               = {}; 
+    APP.canvas        = null; 
+    APP.gl            = null;
+    APP.shaderProgram = null;
 
-	function initTriangle() {
-		triangle.vertexPositionBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangle.vertices), gl.STATIC_DRAW);
-		triangle.vertexPositionBuffer.numItems = triangle.vertices.length;
-		triangle.vertexPositionBuffer.itemSize = 3;
-		enableAttributes();
-	}
-
-	function drawScene() {
-		gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		gl.bindBuffer(gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
-		gl.vertexAttribPointer(triangle.vertexPositionAttrib, triangle.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-		//gl.vertexAttribPointer(triangle.vertexColorAttrib, triangle.)
-		gl.drawArrays(gl.TRIANGLES, 0, triangle.vertexPositionBuffer.numItems);
-	}
-
-
-	/**
-	 * Entry function for the demo.
-	 */
-	function webGlStart() {
-		// init gl
-		canvas = document.getElementById('webgl-demo');
-		gl = canvas.getContext('webgl');
-		gl.viewportWidth = canvas.width;
-		gl.viewportHeight = canvas.height;
-		
-		// load the shaders, and init them
-		var vertexShader = loadShader(gl, 'color-shader-vs'),
-				fragmentShader = loadShader(gl, 'color-shader-fs');
-
-		shaderProgram = gl.createProgram();
-		gl.attachShader(shaderProgram, vertexShader);
-		gl.attachShader(shaderProgram, fragmentShader);
-		gl.linkProgram(shaderProgram);
-
-		if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-		  alert("Couldn't initialize the shaders");
-		}
-
-		gl.useProgram(shaderProgram);
-
-		initTriangle();
-
-		setInterval(drawScene, 100);
-	}
-
-	function enableAttributes() {
-		triangle.vertexPositionAttrib = gl.getAttribLocation(shaderProgram, 'vertexPosition');
-		gl.enableVertexAttribArray(triangle.vertexPositionAttrib);
-		//triangle.vertexColorAttrib = gl.getAttribLocation(shaderProgram, 'vertexColor');
-		//gl.enableVertexAttribArray(triangle.vertexColorAttrib);
-	}
-
-	/**
-	 * Loads a shader from the script element identified by the element id.
-	 * @param  {[type]} gl [description]
-	 * @param  {[type]} id [description]
-	 * @return {[type]}    [description]
-	 */
-	function loadShader(gl, id) {
-		var shaderEl = document.getElementById(id),
-				shaderSource = shaderEl.innerHTML;
-
-		var shader;
-		if (shaderEl.type == "x-shader/x-fragment") {
-	  	shader = gl.createShader(gl.FRAGMENT_SHADER);
-		} else if (shaderEl.type == "x-shader/x-vertex") {
-			shader = gl.createShader(gl.VERTEX_SHADER);
-		} else {
-			return null;
-		}
-
-    gl.shaderSource(shader, shaderSource);
-    gl.compileShader(shader);
-
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    	alert("Error loading shaders. See console log.")
-      console.log(gl.getShaderInfoLog(shader));
-      return null;
+    function drawScene() {
+      APP.gl.viewport(0, 0, APP.gl.viewportWidth, APP.gl.viewportHeight);
+      APP.gl.clear(APP.gl.COLOR_BUFFER_BIT | APP.gl.DEPTH_BUFFER_BIT);
+      APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
+      APP.gl.vertexAttribPointer(triangle.vertexPositionAttrib, triangle.vertexPositionBuffer.itemSize, APP.gl.FLOAT, false, 0, 0);
+      //APP.gl.vertexAttribPointer(triangle.vertexColorAttrib, triangle.)
+      APP.gl.drawArrays(APP.gl.TRIANGLES, 0, triangle.vertexPositionBuffer.numItems);
     }
 
-    return shader;
-	}
+    /**
+     * Entry function for the demo.
+     */
+    function webGlStart() {
+      // init gl
+      APP.canvas            = $('#webgl-demo')[0];
+      APP.gl                = APP.canvas.getContext('webgl');
+      APP.gl.viewportWidth  = APP.canvas.width;
+      APP.gl.viewportHeight = APP.canvas.height;
+      
+      // load the shaders, and init them
+      var vertexShader = loadShader(APP.gl, '#color-shader-vs'),
+        fragmentShader = loadShader(APP.gl, '#color-shader-fs');
+
+      APP.shaderProgram = APP.gl.createProgram();
+      APP.gl.attachShader(APP.shaderProgram, vertexShader);
+      APP.gl.attachShader(APP.shaderProgram, fragmentShader);
+      APP.gl.linkProgram(APP.shaderProgram);
+
+      if (!APP.gl.getProgramParameter(APP.shaderProgram, APP.gl.LINK_STATUS)) {
+        alert("Couldn't initialize the shaders");
+      }
+
+      APP.gl.useProgram(APP.shaderProgram);
+
+      // initialize the triangle model
+      triangle = new Triangle();
+      triangle.init();
+
+      // draw every 100ms
+      setInterval(drawScene, 100);
+    }
+
+    /**
+     * Loads a shader from the script element identified by the element id.
+     * @param  {[type]} gl [description]
+     * @param  {[type]} id [description]
+     * @return {[type]}    [description]
+     */
+    function loadShader(gl, id) {
+      var shaderEl = $(id)[0],
+          shaderSource = shaderEl.innerHTML;
+
+      var shader;
+      if (shaderEl.type == "x-shader/x-fragment") {
+        shader = gl.createShader(gl.FRAGMENT_SHADER);
+      } else if (shaderEl.type == "x-shader/x-vertex") {
+        shader = gl.createShader(gl.VERTEX_SHADER);
+      } else {
+        return null;
+      }
+
+      gl.shaderSource(shader, shaderSource);
+      gl.compileShader(shader);
+
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        alert("Error loading shaders. See console log.")
+        console.log(gl.getShaderInfoLog(shader));
+        return null;
+      }
+
+      return shader;
+    }
+
+    // wait for document to be fully loaded
+    $(document).ready(function() {
+      webGlStart();
+    })
+  })();
 </script>
 
 </head>
-<body onload="webGlStart();">
-	<h1> Welcome! </h1>
-	<h3> Written By: Cody Balos, Lucas Jovalis, Stephen Carpenter, Deana Ceja, Nathan Wong </h3>
-	<canvas id="webgl-demo" style="border: none;" width="500" height="500"></canvas>
+<body>
+  <h1> Welcome! </h1>
+  <h3> Written By: Cody Balos, Lucas Jovalis, Stephen Carpenter, Deana Ceja, Nathan Wong </h3>
+  <canvas id="webgl-demo" style="border: none;" width="500" height="500"></canvas>
 </body>
 </html>
