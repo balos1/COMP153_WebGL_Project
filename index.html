@@ -12,7 +12,7 @@
   varying highp vec4 color;
 
   void main(void) {
-    color = vec4(1.0, 0.0, 0.0, 1.0); //vertexColor;
+    color = vertexColor;
     gl_Position = vertexPosition;
   }
 </script>
@@ -30,53 +30,71 @@
 <script type="text/javascript">
   function Triangle() {
     this.vertexPositionAttrib = null;
+    this.vertexPositionBuffer = null;
     this.vertexColorAttrib    = null;
+    this.vertexColorBuffer    = null;
     
     this.vertices = [
-      {x: 0.0,  y: 1.0, z: 0.0},
-      {x: -1.0, y: 0.0, z: 0.0},
-      {x: 1.0,  y: 0.0, z: 0.0}
+       0.0, 1.0, 0.0,
+      -1.0, 0.0, 0.0,
+       1.0, 0.0, 0.0
     ];
     
     this.colors = [
-      {r: 1.0, g: 0.0, b: 0.0, a: 1.0},
-      {r: 0.0, g: 1.0, b: 0.0, a: 1.0},
-      {r: 0.0, g: 0.0, b: 1.0, a: 1.0}
-    ]
+      1.0, 0.0, 0.0, 1.0,
+      0.0, 1.0, 0.0, 1.0,
+      0.0, 0.0, 1.0, 1.0
+    ];
   }
 
   Triangle.prototype.init = function() {
     // create the vertex position buffer
-    triangle.vertexPositionBuffer = APP.gl.createBuffer();
-    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
-    APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(triangle.vertices), APP.gl.STATIC_DRAW);
-    triangle.vertexPositionBuffer.numItems = triangle.vertices.length;
-    triangle.vertexPositionBuffer.itemSize = 3;
+    this.vertexPositionBuffer = APP.gl.createBuffer();
+    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+    APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(this.vertices), APP.gl.STATIC_DRAW);
+    this.vertexPositionBuffer.numItems = this.vertices.length;
+    this.vertexPositionBuffer.itemSize = 3;
+
+    // create the vertex color buffer
+    this.vertexColorBuffer = APP.gl.createBuffer();
+    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexColorBuffer);
+    APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(this.colors), APP.gl.STATIC_DRAW);
+    this.vertexColorBuffer.numItems = this.colors.length;
+    this.vertexColorBuffer.itemSize = 4;
 
     // enable the vertex attributes
-    triangle.vertexPositionAttrib = APP.gl.getAttribLocation(APP.shaderProgram, 'vertexPosition');
-    APP.gl.enableVertexAttribArray(triangle.vertexPositionAttrib);
-    //triangle.vertexColorAttrib = APP.gl.getAttribLocation(APP.shaderProgram, 'vertexColor');
-    //APP.gl.enableVertexAttribArray(triangle.vertexColorAttrib);
+    this.vertexPositionAttrib = APP.gl.getAttribLocation(APP.shaderProgram, 'vertexPosition');
+    APP.gl.enableVertexAttribArray(this.vertexPositionAttrib);
+    this.vertexColorAttrib = APP.gl.getAttribLocation(APP.shaderProgram, 'vertexColor');
+    APP.gl.enableVertexAttribArray(this.vertexColorAttrib);
   }
+
+  Triangle.prototype.draw = function() {
+      APP.gl.viewport(0, 0, APP.gl.viewportWidth, APP.gl.viewportHeight);
+      APP.gl.clear(APP.gl.COLOR_BUFFER_BIT | APP.gl.DEPTH_BUFFER_BIT);
+
+      APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexColorBuffer);
+      APP.gl.vertexAttribPointer(triangle.vertexColorAttrib, triangle.vertexColorBuffer.itemSize, 
+        APP.gl.FLOAT, false, 0, 0);
+      
+      APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
+      APP.gl.vertexAttribPointer(triangle.vertexPositionAttrib, triangle.vertexPositionBuffer.itemSize, 
+        APP.gl.FLOAT, false, 0, 0);
+
+      APP.gl.drawArrays(APP.gl.TRIANGLES, 0, 3);
+    }
 </script>
 
 <script type="text/javascript">
   // Use immediately invoked function for scoping
   (function() { 
-    // program global
     APP               = {}; 
     APP.canvas        = null; 
     APP.gl            = null;
     APP.shaderProgram = null;
 
     function drawScene() {
-      APP.gl.viewport(0, 0, APP.gl.viewportWidth, APP.gl.viewportHeight);
-      APP.gl.clear(APP.gl.COLOR_BUFFER_BIT | APP.gl.DEPTH_BUFFER_BIT);
-      APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
-      APP.gl.vertexAttribPointer(triangle.vertexPositionAttrib, triangle.vertexPositionBuffer.itemSize, APP.gl.FLOAT, false, 0, 0);
-      //APP.gl.vertexAttribPointer(triangle.vertexColorAttrib, triangle.)
-      APP.gl.drawArrays(APP.gl.TRIANGLES, 0, triangle.vertexPositionBuffer.numItems);
+      triangle.draw();
     }
 
     /**
@@ -88,7 +106,10 @@
       APP.gl                = APP.canvas.getContext('webgl');
       APP.gl.viewportWidth  = APP.canvas.width;
       APP.gl.viewportHeight = APP.canvas.height;
-      
+
+      // black bacground
+      APP.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
       // load the shaders, and init them
       var vertexShader = loadShader(APP.gl, '#color-shader-vs'),
         fragmentShader = loadShader(APP.gl, '#color-shader-fs');
@@ -142,6 +163,8 @@
 
       return shader;
     }
+
+    
 
     // wait for document to be fully loaded
     $(document).ready(function() {
