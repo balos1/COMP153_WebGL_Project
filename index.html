@@ -1,20 +1,21 @@
 <html>
 <head>
+
+<meta charset="utf-8"/>
 <title> COMP153 WebGL Demo </title>
 
 <link rel="stylesheet" type="text/css" href="index.css">
-
 <script type='text/javascript' src="vendor/gl-matrix-min.js"></script>
 
+<!-- Vertex Shader -->
 <script id="color-shader-vs" type="x-shader/x-vertex">
-  // Vertex shader code
   // WebGL uses OpenGL ES Shading Language, therefore the syntax is slightly
   // different then GLSL. For example, instead of using 'in' and 'out'
   // we have 'attribute' and 'varying' to serve almost the same purpose.
 
   uniform mat4 proj_matrix;
-  uniform mat4 model_matrix;
   uniform mat4 view_matrix;
+  uniform mat4 model_matrix;
 
   attribute vec4 vertexPosition;
   attribute vec4 vertexColor;
@@ -27,9 +28,8 @@
   }
 </script>
 
+<!-- Fragment shader -->
 <script id="color-shader-fs" type="x-shader/x-fragment">
-  // Frag shader code
-  
   // The 'lowp' qualifier tells OpenGL that variable is of the lowest precision.
   // This could improve performance, but could negatively affect rendering quality.
   varying lowp vec4 color;
@@ -46,6 +46,7 @@
     this.vertexPositionBuffer = null;
     this.vertexColorAttrib    = null;
     this.vertexColorBuffer    = null;
+    this.vertexIndexBuffer    = null;
     
     this.vertices = [
       // Front face
@@ -86,22 +87,25 @@
     ];
     
     this.colors = [
-      [1.0,  1.0,  1.0,  1.0],    // Front face: white
-      [1.0,  0.0,  0.0,  1.0],    // Back face: red
-      [0.0,  1.0,  0.0,  1.0],    // Top face: green
-      [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-      [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-      [1.0,  0.0,  1.0,  1.0]     // Left face: purple
+      1.0,  1.0,  1.0,  1.0,    // Front face: white
+      1.0,  0.0,  0.0,  1.0,    // Back face: red
+      0.0,  1.0,  0.0,  1.0,    // Top face: green
+      0.0,  0.0,  1.0,  1.0,    // Bottom face: blue
+      1.0,  1.0,  0.0,  1.0,    // Right face: yellow
+      1.0,  0.0,  1.0,  1.0     // Left face: purple
     ];
   }
 
+  /**
+   * Sets up our cube model for rendering.
+   */
   Cube.prototype.init = function() {
     // create the vertex position buffer
-    // this.vertexPositionBuffer = APP.gl.createBuffer();
-    // APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-    // APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(this.vertices), APP.gl.STATIC_DRAW);
-    // this.vertexPositionBuffer.numItems = this.vertices.length;
-    // this.vertexPositionBuffer.itemSize = 3;
+    this.vertexPositionBuffer = APP.gl.createBuffer();
+    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+    APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(this.vertices), APP.gl.STATIC_DRAW);
+    this.vertexPositionBuffer.numItems = this.vertices.length;
+    this.vertexPositionBuffer.itemSize = 3;
 
     // create the vertex color buffer
     this.vertexColorBuffer = APP.gl.createBuffer();
@@ -110,9 +114,9 @@
     this.vertexColorBuffer.numItems = this.colors.length;
     this.vertexColorBuffer.itemSize = 4;
 
-    // create vertex position buffer using indices
-    this.vertexPositionBuffervertexPositionBuffer = APP.gl.createBuffer();
-    APP.gl.bindBuffer(APP.gl.ELEMENT_ARRAY_BUFFER, this.vertexPositionBuffer);
+    // define the cube by using VBO indexing
+    this.vertexIndexBuffer = APP.gl.createBuffer();
+    APP.gl.bindBuffer(APP.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
     var indices = [
       0,  1,  2,      0,  2,  3,    // front
       4,  5,  6,      4,  6,  7,    // back
@@ -122,8 +126,8 @@
       20, 21, 22,     20, 22, 23    // left
     ];
     APP.gl.bufferData(APP.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), APP.gl.STATIC_DRAW);
-    this.vertexPositionBuffer.numItems = indices.length/3;
-    this.vertexPositionBuffer.itemSize = 3;
+    this.vertexIndexBuffer.numItems = indices.length;
+    this.vertexIndexBuffer.itemSize = 1;
 
     // enable the vertex attributes
     this.vertexPositionAttrib = APP.gl.getAttribLocation(APP.shaderProgram, 'vertexPosition');
@@ -132,19 +136,29 @@
     APP.gl.enableVertexAttribArray(this.vertexColorAttrib);
   }
 
+  /**
+   * Tells WebGL how to draw our Cube model.
+   */
   Cube.prototype.draw = function() {
+    // first we set the viewport, and clean the color and depth bits
     APP.gl.viewport(0, 0, APP.gl.viewportWidth, APP.gl.viewportHeight);
     APP.gl.clear(APP.gl.COLOR_BUFFER_BIT | APP.gl.DEPTH_BUFFER_BIT);
 
-    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexColorBuffer);
-    APP.gl.vertexAttribPointer(triangle.vertexColorAttrib, triangle.vertexColorBuffer.itemSize, 
+    // now we do the shader plumbing for colors
+    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexColorBuffer);
+    APP.gl.vertexAttribPointer(this.vertexColorAttrib, this.vertexColorBuffer.itemSize, 
       APP.gl.FLOAT, false, 0, 0);
     
-    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, triangle.vertexPositionBuffer);
-    APP.gl.vertexAttribPointer(triangle.vertexPositionAttrib, triangle.vertexPositionBuffer.itemSize, 
+    // now we do the shader plumbing for the vertices
+    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexPositionBuffer);
+    APP.gl.vertexAttribPointer(this.vertexPositionAttrib, this.vertexPositionBuffer.itemSize, 
       APP.gl.FLOAT, false, 0, 0);
 
-    APP.gl.drawElements(APP.gl.TRIANGLES, 36, APP.gl.UNSIGNED_SHORT, 0);
+    // now we bind the indices buffer for drawing the cube
+    APP.gl.bindBuffer(APP.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
+
+    // use the indices to draw the cube
+    APP.gl.drawElements(APP.gl.TRIANGLES, this.vertexIndexBuffer.length, APP.gl.UNSIGNED_SHORT, 0);
   }
 </script>
 
@@ -207,6 +221,7 @@
   }
 </script>
 
+<!-- Main program -->
 <script type="text/javascript">
   // Use immediately invoked function for scoping
   (function() { 
@@ -214,21 +229,22 @@
     APP.canvas        = null; 
     APP.gl            = null;
     APP.shaderProgram = null;
-    APP.uniforms      = {};
-    APP.transforms    = {};
-
-    function drawScene() {
-      APP.transforms.model_matrix = mat4.create();
-      APP.gl.uniformMatrix4fv(APP.uniforms.model_matrix, false, new Float32Array(APP.transforms.model_matrix));
-      // triangle.draw();
-      cube.draw();
-    }
+    APP.uniforms      = {
+      proj_matrix: null,
+      view_matrix: null,
+      model_matrix: null
+    };
+    APP.transforms    = {
+      proj_matrix: mat4.create(),
+      view_matrix: mat4.create(),
+      model_matrix: mat4.create()
+    };
 
     /**
      * Entry function for the demo.
      */
     function webGlStart() {
-      // init gl
+    // BEGIN init gl
       APP.canvas            = document.getElementById('webgl-demo');
       APP.gl                = APP.canvas.getContext('webgl') || APP.canvas.getContext('experimental-webgl');
       APP.gl.viewportWidth  = APP.canvas.width  = window.innerWidth;
@@ -241,8 +257,9 @@
       APP.gl.depthFunc(APP.gl.LEQUAL);
       // clear the color and depth buffer
       APP.gl.clear(APP.gl.COLOR_BUFFER_BIT, APP.gl.DEPTH_BUFFER_BIT);
+    // END init gl
 
-      // BEGIN load the shaders, and init them
+    // BEGIN load the shaders, and init them
       var vertexShader = loadShader(APP.gl, 'color-shader-vs'),
         fragmentShader = loadShader(APP.gl, 'color-shader-fs');
 
@@ -256,37 +273,60 @@
       }
 
       APP.gl.useProgram(APP.shaderProgram);
-      // END load the shaders, and init them
+    // END load the shaders, and init them
 
-      // BEGIN load uniforms
+    // BEGIN load uniforms
       APP.uniforms.proj_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "proj_matrix");
       APP.uniforms.model_matrix = APP.gl.getUniformLocation(APP.shaderProgram, "model_matrix");
       APP.uniforms.view_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "view_matrix");
-      // END load uniforms
+    // END load uniforms
 
-      // BEGIN initialize models
+    // BEGIN initialize models
       triangle = new Triangle();
       triangle.init();
-
       cube = new Cube();
       cube.init();
-      // END initialize models
+    // END initialize models
 
-      // projection and view matrix dont change
-      APP.transforms.proj_matrix = mat4.create();
-      APP.transforms.view_matrix = mat4.create();
-      APP.gl.uniformMatrix4fv(APP.uniforms.proj_matrix, false, APP.transforms.proj_matrix);
-      APP.gl.uniformMatrix4fv(APP.uniforms.view_matrix, false, APP.transforms.view_matrix);
+    // BEGIN setting up projection and view matrix since they dont change    
+      var eye = vec3.fromValues(0.0, 0.0, 0.0);
+      var aim = vec3.fromValues(0.0, 0.0, 1.0);
+      var up  = vec3.fromValues(0.0, 1.0, 0.0);
+      var fov = glMatrix.toRadian(90);
+      var aspectRatio = APP.gl.viewportWidth/APP.gl.viewportHeight;
+
+      mat4.perspective(APP.transforms.proj_matrix, fov, aspectRatio, 0.1, 100.0);
+      mat4.lookAt(APP.transforms.view_matrix, eye, aim, up);
+    // END setting up projection and view matrix
 
       // draw every 100ms
       setInterval(drawScene, 100);
     }
 
     /**
+     * This function renders all the models used in the scene.
+     */
+    function drawScene() {
+      APP.transforms.model_matrix = mat4.create();
+      updateMatrixUniforms();
+      // triangle.draw();
+      cube.draw();
+    }
+
+    /**
+     * Updates the PVM matrices in the shaders with the new values defined in our APP code. 
+     */
+    function updateMatrixUniforms() {
+      APP.gl.uniformMatrix4fv(APP.uniforms.proj_matrix, false, APP.transforms.proj_matrix);
+      APP.gl.uniformMatrix4fv(APP.uniforms.model_matrix, false, APP.transforms.model_matrix);
+      APP.gl.uniformMatrix4fv(APP.uniforms.view_matrix, false, APP.transforms.view_matrix);
+    }
+
+    /**
      * Loads a shader from the script element identified by the element id.
-     * @param  {WebGL} gl - the canvas/webgl context
+     * @param  {WebGLRenderingContext} gl
      * @param  {String} id - the id of the element with the shader code
-     * @return {Shader} Returns the shader created.
+     * @return {WebGLShader} Returns the shader created.
      */
     function loadShader(gl, id) {
       var shaderEl = document.getElementById(id),
