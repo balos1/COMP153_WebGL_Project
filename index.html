@@ -2,6 +2,8 @@
 <head>
 <title> COMP153 WebGL Demo </title>
 
+<link rel="stylesheet" type="text/css" href="index.css">
+
 <script id="color-shader-vs" type="x-shader/x-vertex">
   // vertex shader code
   attribute vec4 vertexPosition;
@@ -102,8 +104,8 @@
       // init gl
       APP.canvas            = document.getElementById('webgl-demo');
       APP.gl                = APP.canvas.getContext('webgl') || APP.canvas.getContext('experimental-webgl');
-      APP.gl.viewportWidth  = APP.canvas.width;
-      APP.gl.viewportHeight = APP.canvas.height;
+      APP.gl.viewportWidth  = APP.canvas.width  = window.innerWidth;
+      APP.gl.viewportHeight = APP.canvas.height = window.innerHeight;
 
       // black bacground
       APP.gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -182,7 +184,7 @@
         webGlStart();
       }
       else {
-        alert('Your system does not support WebGL or it is disabled.');
+        alert('Your system/browser does not support WebGL or it is disabled.');
       }
     })
   })();
@@ -190,8 +192,8 @@
 
 </head>
 <body>
-  <h1> Welcome! </h1>
-  <h3> Written By: Cody Balos, Lucas Jovalis, Stephen Carpenter, Deana Ceja, Nathan Wong </h3>
-  <canvas id="webgl-demo" style="border: none;" width="500" height="500"></canvas>
+  <!-- <h1> Welcome! </h1> -->
+  <!-- <h3> Written By: Cody Balos, Lucas Jovalis, Stephen Carpenter, Deana Ceja, Nathan Wong </h3> -->
+  <canvas id="webgl-demo" width="500" height="500"></canvas>
 </body>
 </html>
