@@ -2,8 +2,6 @@
 <head>
 <title> COMP153 WebGL Demo </title>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-
 <script id="color-shader-vs" type="x-shader/x-vertex">
   // vertex shader code
   attribute vec4 vertexPosition;
@@ -102,8 +100,8 @@
      */
     function webGlStart() {
       // init gl
-      APP.canvas            = $('#webgl-demo')[0];
-      APP.gl                = APP.canvas.getContext('webgl');
+      APP.canvas            = document.getElementById('webgl-demo');
+      APP.gl                = APP.canvas.getContext('webgl') || APP.canvas.getContext('experimental-webgl');
       APP.gl.viewportWidth  = APP.canvas.width;
       APP.gl.viewportHeight = APP.canvas.height;
 
@@ -111,8 +109,8 @@
       APP.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
       // load the shaders, and init them
-      var vertexShader = loadShader(APP.gl, '#color-shader-vs'),
-        fragmentShader = loadShader(APP.gl, '#color-shader-fs');
+      var vertexShader = loadShader(APP.gl, 'color-shader-vs'),
+        fragmentShader = loadShader(APP.gl, 'color-shader-fs');
 
       APP.shaderProgram = APP.gl.createProgram();
       APP.gl.attachShader(APP.shaderProgram, vertexShader);
@@ -120,7 +118,7 @@
       APP.gl.linkProgram(APP.shaderProgram);
 
       if (!APP.gl.getProgramParameter(APP.shaderProgram, APP.gl.LINK_STATUS)) {
-        alert("Couldn't initialize the shaders");
+        alert("Couldn't initialize the shaders.");
       }
 
       APP.gl.useProgram(APP.shaderProgram);
@@ -140,7 +138,7 @@
      * @return {[type]}    [description]
      */
     function loadShader(gl, id) {
-      var shaderEl = $(id)[0],
+      var shaderEl = document.getElementById(id),
           shaderSource = shaderEl.innerHTML;
 
       var shader;
@@ -164,11 +162,28 @@
       return shader;
     }
 
-    
+    /**
+     * Check if WebGL is supported on the client.
+     * @return {bool} Returns true if there is support, false otherwise.
+     */
+    function webgl_support() { 
+      try {
+        var canvas = document.createElement('canvas'); 
+          return !!window.WebGLRenderingContext && 
+                 (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+      } catch(e) { 
+        return false; 
+      } 
+    }
 
-    // wait for document to be fully loaded
-    $(document).ready(function() {
-      webGlStart();
+    // wait for document to be fully loaded to start the webgl app
+    document.addEventListener("DOMContentLoaded", function() {
+      if (webgl_support()) {
+        webGlStart();
+      }
+      else {
+        alert('Your system does not support WebGL or it is disabled.');
+      }
     })
   })();
 </script>
