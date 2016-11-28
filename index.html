@@ -87,12 +87,12 @@
     ];
     
     this.colors = [
-      1.0,  1.0,  1.0,  1.0,    // Front face: white
-      1.0,  0.0,  0.0,  1.0,    // Back face: red
-      0.0,  1.0,  0.0,  1.0,    // Top face: green
-      0.0,  0.0,  1.0,  1.0,    // Bottom face: blue
-      1.0,  1.0,  0.0,  1.0,    // Right face: yellow
-      1.0,  0.0,  1.0,  1.0     // Left face: purple
+      [1.0,  1.0,  1.0,  1.0],    // Front face: white
+      [1.0,  0.0,  0.0,  1.0],    // Back face: red
+      [0.0,  1.0,  0.0,  1.0],    // Top face: green
+      [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+      [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+      [1.0,  0.0,  1.0,  1.0]     // Left face: purple
     ];
   }
 
@@ -107,11 +107,23 @@
     this.vertexPositionBuffer.numItems = this.vertices.length;
     this.vertexPositionBuffer.itemSize = 3;
 
+	var generatedColors = [];
+
+	for (j=0; j<6; j++) {
+		var c = this.colors[j];
+
+		// Repeat each color four times for the four vertices of the face
+
+		for (var i=0; i<4; i++) {
+			generatedColors = generatedColors.concat(c);
+		}
+	}
+  
     // create the vertex color buffer
     this.vertexColorBuffer = APP.gl.createBuffer();
     APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexColorBuffer);
-    APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(this.colors), APP.gl.STATIC_DRAW);
-    this.vertexColorBuffer.numItems = this.colors.length;
+    APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(generatedColors), APP.gl.STATIC_DRAW);
+    this.vertexColorBuffer.numItems = generatedColors.length;
     this.vertexColorBuffer.itemSize = 4;
 
     // define the cube by using VBO indexing
@@ -144,21 +156,22 @@
     APP.gl.viewport(0, 0, APP.gl.viewportWidth, APP.gl.viewportHeight);
     APP.gl.clear(APP.gl.COLOR_BUFFER_BIT | APP.gl.DEPTH_BUFFER_BIT);
 
-    // now we do the shader plumbing for colors
-    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexColorBuffer);
-    APP.gl.vertexAttribPointer(this.vertexColorAttrib, this.vertexColorBuffer.itemSize, 
-      APP.gl.FLOAT, false, 0, 0);
-    
     // now we do the shader plumbing for the vertices
     APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexPositionBuffer);
     APP.gl.vertexAttribPointer(this.vertexPositionAttrib, this.vertexPositionBuffer.itemSize, 
       APP.gl.FLOAT, false, 0, 0);
 
+    // now we do the shader plumbing for colors
+    APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexColorBuffer);
+    APP.gl.vertexAttribPointer(this.vertexColorAttrib, this.vertexColorBuffer.itemSize, 
+      APP.gl.FLOAT, false, 0, 0);
+    
     // now we bind the indices buffer for drawing the cube
     APP.gl.bindBuffer(APP.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
-
+	
     // use the indices to draw the cube
-    APP.gl.drawElements(APP.gl.TRIANGLES, this.vertexIndexBuffer.length, APP.gl.UNSIGNED_SHORT, 0);
+    APP.gl.drawElements(APP.gl.TRIANGLES, 36, APP.gl.UNSIGNED_SHORT, 0);
+	
   }
 </script>
 
@@ -289,7 +302,7 @@
     // END initialize models
 
     // BEGIN setting up projection and view matrix since they dont change    
-      var eye = vec3.fromValues(0.0, 0.0, 0.0);
+      var eye = vec3.fromValues(-3.0, -3.0, -3.0);
       var aim = vec3.fromValues(0.0, 0.0, 1.0);
       var up  = vec3.fromValues(0.0, 1.0, 0.0);
       var fov = glMatrix.toRadian(90);
