@@ -9,17 +9,19 @@
 
 <!-- Part 1 Vertex Shader -->
 <script id="part1-shader-vs" type="x-shader/x-vertex">
+  // TODO #1: Add a pass-through color variable.
   // WebGL uses OpenGL ES Shading Language, therefore the syntax is slightly
   // different then GLSL. For example, instead of using 'in' and 'out'
   // we have 'attribute' and 'varying' to serve almost the same purpose.
+  // varying vec4 color;
+  
   attribute vec4 vertexPosition;
   attribute vec4 vertexColor;
-  
-  // varying vec4 color;
 
   void main(void) {
+    // TODO #2: Uncomment the line below to set the color to the incoming vertex color.
     // color = vertexColor;
-    gl_Position = proj_matrix * view_matrix * model_matrix * vertexPosition;
+    gl_Position = vertexPosition;
   }
 </script>
 
@@ -45,26 +47,16 @@
 </script>
 
 <!-- Part 1 Fragment shader -->
-<script id="part1-shader-fs" type="x-shader/x-fragment">
-  // TODO #1 Uncomment the line below to get the color passed in from the vertex shader.
+<script id="shader-fs" type="x-shader/x-fragment">
+  // TODO #3 Uncomment the line below to get the color passed in from the vertex shader.
   // The 'lowp' qualifier tells OpenGL that variable is of the lowest precision.
   // This could improve performance, but could negatively affect rendering quality.
   // varying lowp vec4 color;
 
   void main(void) {
-    // TODO #2 Utilize our new 'color' variable by modifying the line below.
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-  }
-</script>
-
-<!-- Part 2 Fragment shader -->
-<script id="part2-shader-fs" type="x-shader/x-fragment">
-  // The 'lowp' qualifier tells OpenGL that variable is of the lowest precision.
-  // This could improve performance, but could negatively affect rendering quality.
-  varying lowp vec4 color;
-
-  void main(void) {
-    gl_FragColor = color;
+    // TODO #4 Utilize our new 'color' variable by modifying the line below.
+    gl_FragColor = vec4(0.0, 0.5, 0.5, 1.0);
+    // gl_FragColor = color;
   }
 </script>
 
@@ -302,8 +294,8 @@
     // END init gl
 
     // BEGIN load the shaders, and init them
-      var vertexShader = loadShader(APP.gl, 'color-shader-vs'),
-        fragmentShader = loadShader(APP.gl, 'color-shader-fs');
+      var vertexShader = loadShader(APP.gl, 'part1-shader-vs'),
+        fragmentShader = loadShader(APP.gl, 'shader-fs');
 
       APP.shaderProgram = APP.gl.createProgram();
       APP.gl.attachShader(APP.shaderProgram, vertexShader);
@@ -318,16 +310,18 @@
     // END load the shaders, and init them
 
     // BEGIN load uniforms
-      APP.uniforms.proj_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "proj_matrix");
-      APP.uniforms.model_matrix = APP.gl.getUniformLocation(APP.shaderProgram, "model_matrix");
-      APP.uniforms.view_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "view_matrix");
+      // TODO # : Uncomment the lines below to get the location of the matrix uniforms
+      // APP.uniforms.proj_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "proj_matrix");
+      // APP.uniforms.model_matrix = APP.gl.getUniformLocation(APP.shaderProgram, "model_matrix");
+      // APP.uniforms.view_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "view_matrix");
     // END load uniforms
 
     // BEGIN initialize models
       triangle = new Triangle();
       triangle.init();
-      cube = new Cube();
-      cube.init();
+      // TODO # : Create a new cube class instance and init it
+      // cube = new Cube();
+      // cube.init();
     // END initialize models
 
     // BEGIN setting up projection and view matrix since they dont change    
@@ -341,8 +335,8 @@
       mat4.lookAt(APP.transforms.view_matrix, eye, aim, up);
     // END setting up projection and view matrix
 
-      // draw every 100ms
-      setInterval(drawScene, 100);
+      // draw every 10ms
+      setInterval(drawScene, 10);
     }
 
     /**
@@ -351,8 +345,9 @@
     function drawScene() {
       APP.transforms.model_matrix = mat4.create();
       updateMatrixUniforms();
-      // triangle.draw();
-      cube.draw();
+      triangle.draw();
+      // TODO #: Uncomment the line below and comment the line above to draw the cube.
+      // cube.draw();
     }
 
     /**
