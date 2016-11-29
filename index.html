@@ -7,8 +7,24 @@
 <link rel="stylesheet" type="text/css" href="index.css">
 <script type='text/javascript' src="vendor/gl-matrix-min.js"></script>
 
-<!-- Vertex Shader -->
-<script id="color-shader-vs" type="x-shader/x-vertex">
+<!-- Part 1 Vertex Shader -->
+<script id="part1-shader-vs" type="x-shader/x-vertex">
+  // WebGL uses OpenGL ES Shading Language, therefore the syntax is slightly
+  // different then GLSL. For example, instead of using 'in' and 'out'
+  // we have 'attribute' and 'varying' to serve almost the same purpose.
+  attribute vec4 vertexPosition;
+  attribute vec4 vertexColor;
+  
+  // varying vec4 color;
+
+  void main(void) {
+    // color = vertexColor;
+    gl_Position = proj_matrix * view_matrix * model_matrix * vertexPosition;
+  }
+</script>
+
+<!-- Part 2 Vertex Shader -->
+<script id="part2-shader-vs" type="x-shader/x-vertex">
   // WebGL uses OpenGL ES Shading Language, therefore the syntax is slightly
   // different then GLSL. For example, instead of using 'in' and 'out'
   // we have 'attribute' and 'varying' to serve almost the same purpose.
@@ -28,8 +44,21 @@
   }
 </script>
 
-<!-- Fragment shader -->
-<script id="color-shader-fs" type="x-shader/x-fragment">
+<!-- Part 1 Fragment shader -->
+<script id="part1-shader-fs" type="x-shader/x-fragment">
+  // TODO #1 Uncomment the line below to get the color passed in from the vertex shader.
+  // The 'lowp' qualifier tells OpenGL that variable is of the lowest precision.
+  // This could improve performance, but could negatively affect rendering quality.
+  // varying lowp vec4 color;
+
+  void main(void) {
+    // TODO #2 Utilize our new 'color' variable by modifying the line below.
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  }
+</script>
+
+<!-- Part 2 Fragment shader -->
+<script id="part2-shader-fs" type="x-shader/x-fragment">
   // The 'lowp' qualifier tells OpenGL that variable is of the lowest precision.
   // This could improve performance, but could negatively affect rendering quality.
   varying lowp vec4 color;
