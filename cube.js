@@ -82,11 +82,7 @@ Cube.prototype.init = function() {
 	}
 
   // TODO #3: Insert code below
-  this.vertexColorBuffer = APP.gl.createBuffer();
-  APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexColorBuffer);
-  APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(generatedColors), APP.gl.STATIC_DRAW);
-  this.vertexColorBuffer.numItems = generatedColors.length;
-  this.vertexColorBuffer.itemSize = 4;
+
 
   // define the cube by using VBO indexing
   this.vertexIndexBuffer = APP.gl.createBuffer();

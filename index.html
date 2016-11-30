@@ -15,14 +15,13 @@
   // WebGL uses OpenGL ES Shading Language, therefore the syntax is slightly
   // different then GLSL. For example, instead of using 'in' and 'out'
   // we have 'attribute' and 'varying' to serve almost the same purpose.
-  varying vec4 color;
   
   attribute vec4 vertexPosition;
   attribute vec4 vertexColor;
 
   void main(void) {
     // TODO #1: Uncomment the line below to set the color to the incoming vertex color.
-    color = vertexColor;
+    // color = vertexColor;
     gl_Position = vertexPosition;
   }
 </script>
@@ -53,12 +52,11 @@
   // TODO #2 Uncomment the line below to get the color passed in from the vertex shader.
   // The 'lowp' qualifier tells OpenGL that variable is of the lowest precision.
   // This could improve performance, but could negatively affect rendering quality.
-  varying lowp vec4 color;
+  // varying lowp vec4 color;
 
   void main(void) {
     // TODO #2 Utilize our new 'color' variable by modifying the line below.
-    // gl_FragColor = vec4(0.0, 0.5, 0.5, 1.0);
-    gl_FragColor = color;
+    gl_FragColor = vec4(0.0, 0.5, 0.5, 1.0);
   }
 </script>
 
@@ -106,7 +104,7 @@
 
     // BEGIN load the shaders, and init them
       // TODO #6: Load the part 2 shader instead of the part 1 shader.
-      var vertexShader = loadShader(APP.gl, 'part2-shader-vs'),
+      var vertexShader = loadShader(APP.gl, 'part1-shader-vs'),
         fragmentShader = loadShader(APP.gl, 'shader-fs');
 
       APP.shaderProgram = APP.gl.createProgram();
@@ -123,17 +121,17 @@
 
     // BEGIN load uniforms
       // TODO #4 : Uncomment the lines below to get the location of the matrix uniforms
-      APP.uniforms.proj_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "proj_matrix");
-      APP.uniforms.model_matrix = APP.gl.getUniformLocation(APP.shaderProgram, "model_matrix");
-      APP.uniforms.view_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "view_matrix");
+      // APP.uniforms.proj_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "proj_matrix");
+      // APP.uniforms.model_matrix = APP.gl.getUniformLocation(APP.shaderProgram, "model_matrix");
+      // APP.uniforms.view_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "view_matrix");
     // END load uniforms
 
     // BEGIN initialize models
       triangle = new Triangle();
       triangle.init();
       // TODO #4: Uncomment the lines below to create a new cube class instance and init it.
-      cube = new Cube();
-      cube.init();
+      // cube = new Cube();
+      // cube.init();
     // END initialize models
 
     // BEGIN setting up projection and view matrix since they dont change    
@@ -156,22 +154,11 @@
      */
     function drawScene() {
       APP.transforms.model_matrix = mat4.create();
-      mat4.rotateY(APP.transforms.model_matrix, 
-                   APP.transforms.model_matrix, 
-                   glMatrix.toRadian(APP.cube.rotation));
       updateMatrixUniforms();
       
-      // triangle.draw();
+      triangle.draw();
       // TODO #5: Uncomment the line below and comment the line above to draw the cube.
-      cube.draw();
-
-      // BONUS TODO: Make the cube rotate!
-      var currentTime = (new Date).getTime();
-      if (APP.cube.lastUpdate) {
-        var delta = currentTime - APP.cube.lastUpdate;
-        APP.cube.rotation += (30 * delta) / 1000.0;
-      }
-      APP.cube.lastUpdate = currentTime;
+      // cube.draw();
     }
 
     /**
