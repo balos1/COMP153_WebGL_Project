@@ -70,15 +70,19 @@
     APP.canvas        = null; 
     APP.gl            = null;
     APP.shaderProgram = null;
-    APP.uniforms      = {
+    APP.uniforms = {
       proj_matrix: null,
       view_matrix: null,
       model_matrix: null
     };
-    APP.transforms    = {
+    APP.transforms = {
       proj_matrix: mat4.create(),
       view_matrix: mat4.create(),
       model_matrix: mat4.create()
+    };
+    APP.cube = {
+      rotation: 0.0,
+      lastUpdate: 0
     };
 
     /**
@@ -133,7 +137,7 @@
     // END initialize models
 
     // BEGIN setting up projection and view matrix since they dont change    
-      var eye = vec3.fromValues(-3.0, -3.0, -3.0);
+      var eye = vec3.fromValues(-3.0, -2.0, -3.0);
       var aim = vec3.fromValues(0.0, 0.0, 1.0);
       var up  = vec3.fromValues(0.0, 1.0, 0.0);
       var fov = glMatrix.toRadian(90);
@@ -152,10 +156,22 @@
      */
     function drawScene() {
       APP.transforms.model_matrix = mat4.create();
+      mat4.rotateY(APP.transforms.model_matrix, 
+                   APP.transforms.model_matrix, 
+                   glMatrix.toRadian(APP.cube.rotation));
       updateMatrixUniforms();
+      
       // triangle.draw();
       // TODO #5: Uncomment the line below and comment the line above to draw the cube.
       cube.draw();
+
+      // BONUS TODO: Make the cube rotate!
+      var currentTime = (new Date).getTime();
+      if (APP.cube.lastUpdate) {
+        var delta = currentTime - APP.cube.lastUpdate;
+        APP.cube.rotation += (30 * delta) / 1000.0;
+      }
+      APP.cube.lastUpdate = currentTime;
     }
 
     /**
