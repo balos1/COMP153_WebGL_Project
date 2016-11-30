@@ -13,14 +13,14 @@
   // WebGL uses OpenGL ES Shading Language, therefore the syntax is slightly
   // different then GLSL. For example, instead of using 'in' and 'out'
   // we have 'attribute' and 'varying' to serve almost the same purpose.
-  // varying vec4 color;
+  varying vec4 color;
   
   attribute vec4 vertexPosition;
   attribute vec4 vertexColor;
 
   void main(void) {
-    // TODO #2: Uncomment the line below to set the color to the incoming vertex color.
-    // color = vertexColor;
+    // TODO #1: Uncomment the line below to set the color to the incoming vertex color.
+    color = vertexColor;
     gl_Position = vertexPosition;
   }
 </script>
@@ -46,17 +46,17 @@
   }
 </script>
 
-<!-- Part 1 Fragment shader -->
+<!-- Fragment shader -->
 <script id="shader-fs" type="x-shader/x-fragment">
-  // TODO #3 Uncomment the line below to get the color passed in from the vertex shader.
+  // TODO #2 Uncomment the line below to get the color passed in from the vertex shader.
   // The 'lowp' qualifier tells OpenGL that variable is of the lowest precision.
   // This could improve performance, but could negatively affect rendering quality.
-  // varying lowp vec4 color;
+  varying lowp vec4 color;
 
   void main(void) {
-    // TODO #4 Utilize our new 'color' variable by modifying the line below.
-    gl_FragColor = vec4(0.0, 0.5, 0.5, 1.0);
-    // gl_FragColor = color;
+    // TODO #2 Utilize our new 'color' variable by modifying the line below.
+    // gl_FragColor = vec4(0.0, 0.5, 0.5, 1.0);
+    gl_FragColor = color;
   }
 </script>
 
@@ -128,19 +128,17 @@
     this.vertexPositionBuffer.numItems = this.vertices.length;
     this.vertexPositionBuffer.itemSize = 3;
 
-	var generatedColors = [];
-
-	for (j=0; j<6; j++) {
-		var c = this.colors[j];
-
-		// Repeat each color four times for the four vertices of the face
-
-		for (var i=0; i<4; i++) {
-			generatedColors = generatedColors.concat(c);
-		}
-	}
+    // generate colors for each vertex based on color for each face
+  	var generatedColors = [];
+  	for (j=0; j<6; j++) {
+		  var c = this.colors[j];
+  		// Repeat each color four times for the four vertices of the face
+  		for (var i=0; i<4; i++) {
+  			generatedColors = generatedColors.concat(c);
+  		}
+  	}
   
-    // create the vertex color buffer
+    // TODO #3: Insert code below
     this.vertexColorBuffer = APP.gl.createBuffer();
     APP.gl.bindBuffer(APP.gl.ARRAY_BUFFER, this.vertexColorBuffer);
     APP.gl.bufferData(APP.gl.ARRAY_BUFFER, new Float32Array(generatedColors), APP.gl.STATIC_DRAW);
@@ -191,7 +189,7 @@
     APP.gl.bindBuffer(APP.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
 	
     // use the indices to draw the cube
-    APP.gl.drawElements(APP.gl.TRIANGLES, 36, APP.gl.UNSIGNED_SHORT, 0);
+    APP.gl.drawElements(APP.gl.TRIANGLES, this.vertexIndexBuffer.numItems, APP.gl.UNSIGNED_SHORT, 0);
 	
   }
 </script>
@@ -294,7 +292,8 @@
     // END init gl
 
     // BEGIN load the shaders, and init them
-      var vertexShader = loadShader(APP.gl, 'part1-shader-vs'),
+      // TODO #6: Load the part 2 shader instead of the part 1 shader.
+      var vertexShader = loadShader(APP.gl, 'part2-shader-vs'),
         fragmentShader = loadShader(APP.gl, 'shader-fs');
 
       APP.shaderProgram = APP.gl.createProgram();
@@ -310,18 +309,18 @@
     // END load the shaders, and init them
 
     // BEGIN load uniforms
-      // TODO # : Uncomment the lines below to get the location of the matrix uniforms
-      // APP.uniforms.proj_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "proj_matrix");
-      // APP.uniforms.model_matrix = APP.gl.getUniformLocation(APP.shaderProgram, "model_matrix");
-      // APP.uniforms.view_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "view_matrix");
+      // TODO #4 : Uncomment the lines below to get the location of the matrix uniforms
+      APP.uniforms.proj_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "proj_matrix");
+      APP.uniforms.model_matrix = APP.gl.getUniformLocation(APP.shaderProgram, "model_matrix");
+      APP.uniforms.view_matrix  = APP.gl.getUniformLocation(APP.shaderProgram, "view_matrix");
     // END load uniforms
 
     // BEGIN initialize models
       triangle = new Triangle();
       triangle.init();
-      // TODO # : Create a new cube class instance and init it
-      // cube = new Cube();
-      // cube.init();
+      // TODO #4: Uncomment the lines below to create a new cube class instance and init it.
+      cube = new Cube();
+      cube.init();
     // END initialize models
 
     // BEGIN setting up projection and view matrix since they dont change    
@@ -345,9 +344,9 @@
     function drawScene() {
       APP.transforms.model_matrix = mat4.create();
       updateMatrixUniforms();
-      triangle.draw();
-      // TODO #: Uncomment the line below and comment the line above to draw the cube.
-      // cube.draw();
+      // triangle.draw();
+      // TODO #5: Uncomment the line below and comment the line above to draw the cube.
+      cube.draw();
     }
 
     /**
